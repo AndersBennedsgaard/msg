@@ -1,0 +1,10 @@
+[tools]
+go = "1.25.4"
+air = "latest"
+docker-cli = "latest"
+
+[tasks.test]
+run = "go test -v ./..."
+
+[tasks.build]
+run = "go build -o bin/msg main.go"
