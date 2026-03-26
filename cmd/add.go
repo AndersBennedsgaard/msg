@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"io"
@@ -8,9 +9,11 @@ import (
 	"time"
 
 	"github.com/AndersBennedsgaard/msg/cmd/flags"
+	"github.com/AndersBennedsgaard/msg/internal/logging"
 	"github.com/AndersBennedsgaard/msg/internal/notification"
 	"github.com/AndersBennedsgaard/msg/internal/store"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 )
 
 var (
@@ -41,6 +44,7 @@ var addCmd = &cobra.Command{
 	Args:  cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		inputReader := cmd.InOrStdin()
+		logger := logging.GetLogger()
 
 		if msgContent == "" {
 			// read from inputReader
@@ -57,13 +61,25 @@ var addCmd = &cobra.Command{
 			}
 		}
 
-		fsstore := store.NewFSStore(cfg.BasePath)
+		db, err := sql.Open("sqlite", path)
+		if err != nil {
+			return fmt.Errorf("an error occurred when opening datbase: %w", err)
+		}
+		defer func() {
+			err := db.Close()
+			if err != nil {
+				logger.Fatal("an error occurred when closing the database: %s", zap.Error(err))
+			}
+		}()
+
+		dbstore, err := store.NewSqliteStore(db)
+		if err != nil {
+			return fmt.Errorf("an error occured when initializing the database connection: %w", err)
+		}
 
 		now := time.Now()
-		id := fmt.Sprintf("%d", now.UnixNano())
 
 		noti, err := notification.NewNotification(
-			notification.NotificationId(id),
 			msgType,
 			now,
 			msgSeverity,
@@ -77,12 +93,12 @@ var addCmd = &cobra.Command{
 			Notification: noti,
 			Status:       notification.StatusUnread,
 		}
-		err = fsstore.AddMessage(msg)
+		id, err := dbstore.AddMessage(msg)
 		if err != nil {
 			return err
 		}
 
-		_, err = fmt.Fprintf(cmd.OutOrStdout(), "Added message with ID: %s\n", msg.ID())
+		_, err = fmt.Fprintf(cmd.OutOrStdout(), "Added message with ID: %d\n", id)
 		return err
 	},
 }

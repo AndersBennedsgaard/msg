@@ -7,7 +7,6 @@ import (
 	"time"
 )
 
-type NotificationId string
 type NotificationSeverity string
 
 const (
@@ -18,7 +17,6 @@ const (
 )
 
 type Notification struct {
-	id        NotificationId
 	_type     string
 	timestamp time.Time
 	severity  NotificationSeverity
@@ -43,22 +41,17 @@ func IsValidSeverity(sev NotificationSeverity) bool {
 		sev == NotificationSeverityCritical
 }
 
-func NewNotification(id NotificationId, _type string, timestamp time.Time, severity NotificationSeverity, message string) (Notification, error) {
+func NewNotification(_type string, timestamp time.Time, severity NotificationSeverity, message string) (Notification, error) {
 	if !IsValidSeverity(severity) {
 		return Notification{}, &ErrInvalidSeverity{Value: string(severity)}
 	}
 
 	return Notification{
-		id:        id,
 		_type:     _type,
 		timestamp: timestamp,
 		severity:  severity,
 		message:   message,
 	}, nil
-}
-
-func (n Notification) ID() NotificationId {
-	return n.id
 }
 
 func (n Notification) Type() string {
@@ -78,9 +71,6 @@ func (n Notification) Message() string {
 }
 
 func (n Notification) Equals(other Notification) bool {
-	if n.ID() != other.ID() {
-		return false
-	}
 	if n.Type() != other.Type() {
 		return false
 	}
@@ -100,8 +90,7 @@ func (n Notification) Equals(other Notification) bool {
 func Render(n Notification) string {
 	timestampStr := n.timestamp.Format(time.RFC822)
 
-	return "ID: " + string(n.id) + "\n" +
-		"Type: " + string(n._type) + "\n" +
+	return "Type: " + string(n._type) + "\n" +
 		"Timestamp: " + timestampStr + "\n" +
 		"Severity: " + string(n.severity) + "\n\n" +
 		n.message + "\n"
@@ -114,7 +103,6 @@ func Parse(input string) (Notification, error) {
 		return Notification{}, ErrInvalidFormat
 	}
 
-	id := NotificationId(strings.TrimPrefix(lines[0], "ID: "))
 	_type := string(strings.TrimPrefix(lines[1], "Type: "))
 	timestampStr := strings.TrimPrefix(lines[2], "Timestamp: ")
 	severity := NotificationSeverity(strings.TrimPrefix(lines[3], "Severity: "))
@@ -125,5 +113,5 @@ func Parse(input string) (Notification, error) {
 		return Notification{}, ErrInvalidTimestampFormat
 	}
 
-	return NewNotification(id, _type, timestamp, severity, message)
+	return NewNotification(_type, timestamp, severity, message)
 }

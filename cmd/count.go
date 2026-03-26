@@ -1,9 +1,13 @@
 package cmd
 
 import (
-	"errors"
+	"database/sql"
+	"fmt"
 
+	"github.com/AndersBennedsgaard/msg/internal/logging"
+	"github.com/AndersBennedsgaard/msg/internal/store"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 )
 
 // countCmd represents the count command
@@ -17,20 +21,34 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return errors.New("not implemented yet")
+		logger := logging.GetLogger()
+
+		db, err := sql.Open("sqlite", path)
+		if err != nil {
+			return fmt.Errorf("error occurred when opening datbase: %w", err)
+		}
+		defer func() {
+			err := db.Close()
+			if err != nil {
+				logger.Fatal("error occurred when closing the database: %s", zap.Error(err))
+			}
+		}()
+
+		dbstore, err := store.NewSqliteStore(db)
+		if err != nil {
+			return fmt.Errorf("error occured when initializing the database connection: %w", err)
+		}
+
+		count, err := dbstore.CountUnreadMessages()
+		if err != nil {
+			return fmt.Errorf("error occured when counting unread messages: %w", err)
+		}
+
+		_, err = fmt.Fprintf(cmd.OutOrStdout(), "Number of unread messages: %d\n", count)
+		return err
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(countCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// countCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// countCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

@@ -15,13 +15,12 @@ func TestRender(t *testing.T) {
 	}
 
 	timestamp := time.Date(2025, time.November, 10, 8, 15, 0, 0, utcLoc)
-	n, err := notification.NewNotification("someId", "type", timestamp, "high", "some message")
+	n, err := notification.NewNotification("type", timestamp, "high", "some message")
 	if err != nil {
 		t.Fatalf("Error creating notification: %v", err)
 	}
 
-	expected := `ID: someId
-Type: type
+	expected := `Type: type
 Timestamp: 10 Nov 25 08:15 UTC
 Severity: high
 
@@ -41,7 +40,7 @@ func TestParse(t *testing.T) {
 	}
 
 	timestamp := time.Date(2025, time.November, 10, 8, 15, 0, 0, utcLoc)
-	validNotification, err := notification.NewNotification("someId", "type", timestamp, "high", "some message")
+	validNotification, err := notification.NewNotification("type", timestamp, "high", "some message")
 	if err != nil {
 		t.Fatalf("Error creating notification: %v", err)
 	}
@@ -54,8 +53,7 @@ func TestParse(t *testing.T) {
 	}{
 		{
 			name: "valid input",
-			input: `ID: someId
-Type: type
+			input: `Type: type
 Timestamp: 10 Nov 25 08:15 UTC
 Severity: high
 
@@ -65,8 +63,7 @@ some message`,
 		},
 		{
 			name: "invalid timestamp input",
-			input: `ID: someId
-Type: type
+			input: `Type: type
 Timestamp: invalid-timestamp
 Severity: high
 
@@ -103,9 +100,6 @@ some message
 				t.Fatalf("unexpected error: '%v'", err)
 			}
 
-			if actual.ID() != tc.expected.ID() {
-				t.Fatalf("expected ID '%s', got '%s'", tc.expected.ID(), actual.ID())
-			}
 			if actual.Type() != tc.expected.Type() {
 				t.Fatalf("expected Type '%s', got '%s'", tc.expected.Type(), actual.Type())
 			}
