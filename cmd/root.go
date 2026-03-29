@@ -7,6 +7,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const appGroup = "app"
+
 var (
 	quiet   bool
 	verbose bool
@@ -32,6 +34,8 @@ func Execute() {
 }
 
 func init() {
+	rootCmd.AddGroup(&cobra.Group{ID: appGroup, Title: "Available Commands"})
+
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Add additional debug logs")
 	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "Reduce the amount of logging")
 

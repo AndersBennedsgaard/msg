@@ -33,6 +33,7 @@ func hasStdin() bool {
 // addCmd represents the add command
 var addCmd = &cobra.Command{
 	Use:                   "add [flags] [message]",
+	GroupID:               appGroup,
 	DisableFlagsInUseLine: true,
 	Example: ` # Add a new notification message:
  msg add -t alert -s high -m "Disk space low"

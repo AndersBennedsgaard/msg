@@ -12,8 +12,9 @@ import (
 
 // countCmd represents the count command
 var countCmd = &cobra.Command{
-	Use:   "count",
-	Short: "A brief description of your command",
+	Use:     "count",
+	GroupID: appGroup,
+	Short:   "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
