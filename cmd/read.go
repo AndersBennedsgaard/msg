@@ -10,11 +10,11 @@ import (
 	"go.uber.org/zap"
 )
 
-// countCmd represents the count command
-var countCmd = &cobra.Command{
-	Use:     "count",
+// readCmd represents the read command
+var readCmd = &cobra.Command{
+	Use:     "read",
 	GroupID: appGroup,
-	Short:   "Print the number of unread messages",
+	Short:   "Print the next unread message and mark it as read",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := logging.GetLogger()
 
@@ -34,16 +34,16 @@ var countCmd = &cobra.Command{
 			return fmt.Errorf("error occured when initializing the database connection: %w", err)
 		}
 
-		count, err := dbstore.CountUnreadMessages()
+		message, err := dbstore.ReadNextMessage()
 		if err != nil {
-			return fmt.Errorf("error occured when counting unread messages: %w", err)
+			return fmt.Errorf("error occured when reading unread message: %w", err)
 		}
 
-		_, err = fmt.Fprintf(cmd.OutOrStdout(), "Number of unread messages: %d\n", count)
+		_, err = fmt.Fprintf(cmd.OutOrStdout(), "Time: %s\nSeverity: %s\nType: %s\n\n%s", message.Timestamp(), message.Severity(), message.Type(), message.Message())
 		return err
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(countCmd)
+	rootCmd.AddCommand(readCmd)
 }

@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/AndersBennedsgaard/msg/internal/notification"
@@ -54,18 +53,15 @@ func (store *SqliteStore) AddMessage(msg *notification.Message) (int64, error) {
 	return id, err
 }
 
-func (store *SqliteStore) ReadNextMessage() (*notification.Message, error) {
-	tx, err := store.db.Begin()
-	if err != nil {
-		return nil, fmt.Errorf("error beginning transaction: %w", err)
-	}
-	defer func() {
-		err := tx.Rollback()
-		if err != nil {
-			log.Fatalf("error occurred during rollback: %s", err)
-		}
-	}()
+type message struct {
+	id        int64
+	msg       string
+	severity  string
+	eventType string
+	created   time.Time
+}
 
+func readNextMessage(tx *sql.Tx) (*message, error) {
 	row := tx.QueryRow(`
 		SELECT id, message, severity, type, created_at
 		FROM events
@@ -78,7 +74,7 @@ func (store *SqliteStore) ReadNextMessage() (*notification.Message, error) {
 	var msg, severity, eventType string
 	var created time.Time
 
-	err = row.Scan(&id, &msg, &severity, &eventType, &created)
+	err := row.Scan(&id, &msg, &severity, &eventType, &created)
 	if err == sql.ErrNoRows {
 		return nil, errors.New("no unread messages")
 	}
@@ -95,7 +91,30 @@ func (store *SqliteStore) ReadNextMessage() (*notification.Message, error) {
 		return nil, fmt.Errorf("error committing the database transaction: %w", err)
 	}
 
-	notif, err := notification.NewNotification(eventType, created, notification.NotificationSeverity(severity), msg)
+	return &message{
+		id:        id,
+		msg:       msg,
+		severity:  severity,
+		eventType: eventType,
+		created:   created,
+	}, nil
+}
+
+func (store *SqliteStore) ReadNextMessage() (*notification.Message, error) {
+	tx, err := store.db.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("error beginning transaction: %w", err)
+	}
+
+	msg, err := readNextMessage(tx)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return nil, fmt.Errorf("error occurred during rollback: %s", err)
+		}
+	}
+
+	notif, err := notification.NewNotification(msg.eventType, msg.created, notification.NotificationSeverity(msg.severity), msg.msg)
 	if err != nil {
 		return nil, fmt.Errorf("error creating notification from database: %w", err)
 	}
