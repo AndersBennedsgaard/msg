@@ -25,7 +25,7 @@ var listCmd = &cobra.Command{
 
 		db, err := sql.Open("sqlite", path)
 		if err != nil {
-			return fmt.Errorf("error occurred when opening datbase: %w", err)
+			return fmt.Errorf("error occurred when opening database: %w", err)
 		}
 		defer func() {
 			err := db.Close()
