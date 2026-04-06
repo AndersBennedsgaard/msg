@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"path/filepath"
 
 	"github.com/AndersBennedsgaard/msg/internal/logging"
 	"github.com/spf13/cobra"
@@ -34,10 +35,21 @@ func Execute() {
 }
 
 func init() {
+	// Get XDG_DATA_HOME, default to ~/.local/share if not set
+	xdgDataHome := os.Getenv("XDG_DATA_HOME")
+	if xdgDataHome == "" {
+		home, _ := os.UserHomeDir()
+		xdgDataHome = filepath.Join(home, ".local", "share")
+	}
+
+	// Construct the default database path
+	defaultPath := filepath.Join(xdgDataHome, "msg", "db.sql")
+
+	// Flag configuration
 	rootCmd.AddGroup(&cobra.Group{ID: appGroup, Title: "Available Commands"})
 
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Add additional debug logs")
 	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "Reduce the amount of logging")
 
-	rootCmd.PersistentFlags().StringVarP(&path, "path", "p", "./data.db", "Path to database")
+	rootCmd.PersistentFlags().StringVarP(&path, "path", "p", defaultPath, "Path to database")
 }

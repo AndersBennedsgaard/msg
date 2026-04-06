@@ -21,7 +21,7 @@ Most system events are either **too loud** (desktop popups that vanish), **too h
 
 `msg` uses SQLite for storage.
 
-By default it uses `$XDG_DATA_HOME/msg/data.db` (usually `~/.local/share/msg/data.db`) for the path of the database.
+By default it uses `$XDG_DATA_HOME/msg/db.sql` (usually `~/.local/share/msg/db.sql`) for the path of the database.
 
 ---
 
