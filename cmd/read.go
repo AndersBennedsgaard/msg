@@ -39,7 +39,11 @@ var readCmd = &cobra.Command{
 			return fmt.Errorf("error occured when reading unread message: %w", err)
 		}
 
-		_, err = fmt.Fprintf(cmd.OutOrStdout(), "Time: %s\nSeverity: %s\nType: %s\n\n%s", message.Timestamp(), message.Severity(), message.Type(), message.Message())
+		if message == nil {
+			_, err = fmt.Fprintf(cmd.OutOrStdout(), "No more messages")
+		} else {
+			_, err = fmt.Fprintf(cmd.OutOrStdout(), "Time: %s\nSeverity: %s\nType: %s\n\n%s", message.Timestamp(), message.Severity(), message.Type(), message.Message())
+		}
 		return err
 	},
 }

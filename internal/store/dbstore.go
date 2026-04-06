@@ -114,6 +114,10 @@ func (store *SqliteStore) ReadNextMessage() (*notification.Message, error) {
 			return nil, fmt.Errorf("error occurred during rollback: %s", err)
 		}
 	}
+	if msg == nil {
+		// if no message is found, return no message
+		return nil, nil
+	}
 
 	notif, err := notification.NewNotification(msg.eventType, msg.created, notification.NotificationSeverity(msg.severity), msg.msg)
 	if err != nil {
