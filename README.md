@@ -31,7 +31,7 @@ The system is controlled via the `msg` command:
 
 * **`add`**: Create a new notification.
   ```bash
-  msg add --type ci_fail "Pipeline #402 failed"
+  msg add --type ci_fail --message "Pipeline #402 failed"
   ```
 
 * **`count`**: Return the number of unread messages (ideal for tmux/polybar).
@@ -42,4 +42,9 @@ The system is controlled via the `msg` command:
 * **`read`**: Read the next unread message.
   ```bash
   msg read
+  ```
+
+* **`list`**: Print a list of unread messages for a quick overview.
+  ```bash
+  msg list
   ```
