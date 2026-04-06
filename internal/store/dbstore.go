@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/AndersBennedsgaard/msg/internal/notification"
@@ -124,6 +125,49 @@ func (store *SqliteStore) ReadNextMessage() (*notification.Message, error) {
 		Status:       notification.StatusRead,
 	}
 	return &message, nil
+}
+
+func (store *SqliteStore) ListUnreadMessages(limit int) ([]notification.Notification, error) {
+	rows, err := store.db.Query(`
+		SELECT id, message, severity, type, created_at
+		FROM events
+		WHERE read = 0
+		ORDER BY created_at
+		LIMIT ?
+	`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err = rows.Close(); err != nil {
+			log.Fatalf("error closing database rows: %s", err)
+		}
+	}()
+
+	var messages []notification.Notification
+
+	for rows.Next() {
+		var id int64
+		var msg, severity, eventType string
+		var created time.Time
+
+		err := rows.Scan(&id, &msg, &severity, &eventType, &created)
+		if err != nil {
+			return nil, err
+		}
+
+		notif, err := notification.NewNotification(eventType, created, notification.NotificationSeverity(severity), msg)
+		if err != nil {
+			return nil, fmt.Errorf("error when creating new notification: %w", err)
+		}
+		messages = append(messages, notif)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return messages, nil
 }
 
 func (store *SqliteStore) CountUnreadMessages() (int, error) {
