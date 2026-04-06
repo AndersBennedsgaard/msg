@@ -54,15 +54,7 @@ func (store *SqliteStore) AddMessage(msg *notification.Message) (int64, error) {
 	return id, err
 }
 
-type message struct {
-	id        int64
-	msg       string
-	severity  string
-	eventType string
-	created   time.Time
-}
-
-func readNextMessage(tx *sql.Tx) (*message, error) {
+func readNextMessage(tx *sql.Tx) (*notification.Notification, error) {
 	row := tx.QueryRow(`
 		SELECT id, message, severity, type, created_at
 		FROM events
@@ -92,13 +84,8 @@ func readNextMessage(tx *sql.Tx) (*message, error) {
 		return nil, fmt.Errorf("error committing the database transaction: %w", err)
 	}
 
-	return &message{
-		id:        id,
-		msg:       msg,
-		severity:  severity,
-		eventType: eventType,
-		created:   created,
-	}, nil
+	notif, err := notification.NewNotification(eventType, created, notification.NotificationSeverity(severity), msg)
+	return &notif, err
 }
 
 func (store *SqliteStore) ReadNextMessage() (*notification.Message, error) {
@@ -107,25 +94,20 @@ func (store *SqliteStore) ReadNextMessage() (*notification.Message, error) {
 		return nil, fmt.Errorf("error beginning transaction: %w", err)
 	}
 
-	msg, err := readNextMessage(tx)
+	notif, err := readNextMessage(tx)
 	if err != nil {
 		rollbackErr := tx.Rollback()
 		if rollbackErr != nil {
 			return nil, fmt.Errorf("error occurred during rollback: %s", err)
 		}
 	}
-	if msg == nil {
+	if notif == nil {
 		// if no message is found, return no message
 		return nil, nil
 	}
 
-	notif, err := notification.NewNotification(msg.eventType, msg.created, notification.NotificationSeverity(msg.severity), msg.msg)
-	if err != nil {
-		return nil, fmt.Errorf("error creating notification from database: %w", err)
-	}
-
 	message := notification.Message{
-		Notification: notif,
+		Notification: *notif,
 		Status:       notification.StatusRead,
 	}
 	return &message, nil
