@@ -48,3 +48,53 @@ The system is controlled via the `msg` command:
   ```bash
   msg list
   ```
+
+## Development
+
+### Nix Usage
+
+This repository includes a `flake.nix`, so you can build and run `msg` directly with Nix.
+
+#### Local Repository
+
+From inside this repository:
+
+```bash
+# Build the package
+nix build
+
+# Run the program
+nix run
+
+# Enter development shell
+nix develop
+````
+
+#### Remote Repository
+
+You can also use the GitHub repository directly without cloning it:
+
+```bash
+# Build from GitHub
+nix build github:AndersBennedsgaard/msg
+
+# Run directly
+nix run github:AndersBennedsgaard/msg
+
+# Open development shell
+nix develop github:AndersBennedsgaard/msg
+```
+
+#### Build Output
+
+After running `nix build`, the result will be available in:
+
+```bash
+./result/bin/msg
+```
+
+You can run it manually:
+
+```bash
+./result/bin/msg
+```
