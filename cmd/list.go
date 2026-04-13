@@ -19,7 +19,7 @@ var limit int
 var listCmd = &cobra.Command{
 	Use:     "list",
 	GroupID: appGroup,
-	Short:   "Print the number of unread messages",
+	Short:   "Return a list of unread messages",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := logging.GetLogger()
 

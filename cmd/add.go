@@ -35,14 +35,14 @@ var addCmd = &cobra.Command{
 	Use:                   "add [flags] [message]",
 	GroupID:               appGroup,
 	DisableFlagsInUseLine: true,
+	Short:                 "Add a new notification message",
+	Long:                  `Add a new notification message to the store with specified type, severity, and content.`,
 	Example: ` # Add a new notification message:
  msg add -t alert -s high -m "Disk space low"
 
  # Add a new notification message by reading content from stdin:
  echo "CPU usage high" | msg add -t alert -s critical`,
-	Short: "Add a new notification message",
-	Long:  `Add a new notification message to the store with specified type, severity, and content.`,
-	Args:  cobra.MaximumNArgs(1),
+	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		inputReader := cmd.InOrStdin()
 		logger := logging.GetLogger()

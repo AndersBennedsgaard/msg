@@ -14,7 +14,7 @@ import (
 var readCmd = &cobra.Command{
 	Use:     "read",
 	GroupID: appGroup,
-	Short:   "Print the next unread message and mark it as read",
+	Short:   "Read the next unread message and print it in the terminal",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := logging.GetLogger()
 
