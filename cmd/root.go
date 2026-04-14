@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"database/sql"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -52,4 +54,28 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "Reduce the amount of logging")
 
 	rootCmd.PersistentFlags().StringVarP(&path, "path", "p", defaultPath, "Path to database")
+}
+
+func openDB(path string) (*sql.DB, error) {
+	dir := filepath.Dir(path)
+
+	// Ensure directory exists
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create database directory %q: %w", dir, err)
+	}
+
+	db, err := sql.Open("sqlite", path)
+	if err != nil {
+		return nil, fmt.Errorf("error occurred when opening database: %w", err)
+	}
+
+	if err := db.Ping(); err != nil {
+		closeErr := db.Close()
+		if closeErr != nil {
+			return nil, fmt.Errorf("failed to close database: %w", err)
+		}
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
+	}
+
+	return db, nil
 }

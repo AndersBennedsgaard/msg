@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"database/sql"
 	"fmt"
 	"io"
 	"strings"
@@ -23,7 +22,7 @@ var listCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := logging.GetLogger()
 
-		db, err := sql.Open("sqlite", path)
+		db, err := openDB(path)
 		if err != nil {
 			return fmt.Errorf("error occurred when opening database: %w", err)
 		}

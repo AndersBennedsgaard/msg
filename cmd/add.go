@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"io"
@@ -62,7 +61,7 @@ var addCmd = &cobra.Command{
 			}
 		}
 
-		db, err := sql.Open("sqlite", path)
+		db, err := openDB(path)
 		if err != nil {
 			return fmt.Errorf("an error occurred when opening database: %w", err)
 		}
