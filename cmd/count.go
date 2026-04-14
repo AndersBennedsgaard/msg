@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"io"
+	"strconv"
 
 	"github.com/AndersBennedsgaard/msg/internal/logging"
 	"github.com/AndersBennedsgaard/msg/internal/store"
@@ -38,7 +40,7 @@ var countCmd = &cobra.Command{
 			return fmt.Errorf("error occured when counting unread messages: %w", err)
 		}
 
-		_, err = fmt.Fprintf(cmd.OutOrStdout(), "Number of unread messages: %d\n", count)
+		_, err = io.WriteString(cmd.OutOrStdout(), strconv.Itoa(count))
 		return err
 	},
 }
